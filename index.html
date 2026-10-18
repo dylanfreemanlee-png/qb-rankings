@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>QB Rankings</title>
+<style>
+:root{--bg:#f6f7f9;--card:#fff;--tx:#14181f;--mut:#6b7280;--bd:#e3e6eb;--ac:#1d4ed8;--acx:#fff;--gold:#b45309;--up:#15803d;--dn:#b91c1c;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0f1218;--card:#181c24;--tx:#eef0f4;--mut:#9aa3b2;--bd:#2a303b;--ac:#6ea0ff;--acx:#0b1020;--gold:#fbbf24;--up:#4ade80;--dn:#f87171}}
+:root[data-theme="dark"]{--bg:#0f1218;--card:#181c24;--tx:#eef0f4;--mut:#9aa3b2;--bd:#2a303b;--ac:#6ea0ff;--acx:#0b1020;--gold:#fbbf24;--up:#4ade80;--dn:#f87171}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font:16px/1.4 -apple-system,system-ui,"Segoe UI",Roboto,sans-serif;padding:16px}
+main{max-width:640px;margin:0 auto}
+h1{font-size:22px;margin:4px 0 12px}
+h2{font-size:20px;margin:0 0 6px}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:16px;margin-bottom:14px}
+.card h3{font-size:13px;text-transform:uppercase;letter-spacing:.05em;color:var(--mut);margin:0 0 10px}
+.mut{color:var(--mut);font-size:14px}
+label{display:block;font-size:13px;color:var(--mut);margin-bottom:4px}
+input,select,textarea{width:100%;font:inherit;color:var(--tx);background:var(--bg);border:1px solid var(--bd);border-radius:8px;padding:9px 10px}
+select,textarea{margin-bottom:8px}
+textarea{resize:vertical}
+button{font:inherit;border:0;border-radius:10px;padding:12px 16px;background:var(--ac);color:var(--acx);font-weight:600;cursor:pointer}
+button.sec{background:transparent;color:var(--tx);border:1px solid var(--bd)}
+button.g{background:transparent;color:var(--mut);padding:6px 8px;font-weight:400}
+.nav{display:flex;gap:10px;margin-top:6px}
+.nav button{flex:1}
+.prog{display:flex;gap:6px;margin-bottom:14px}
+.prog div{flex:1;text-align:center;font-size:12px;font-weight:600;padding:8px 4px;border-radius:8px;background:var(--card);border:1px solid var(--bd);color:var(--mut)}
+.prog div.on{background:var(--ac);color:var(--acx);border-color:var(--ac)}
+.prog div.done{color:var(--tx)}
+.wgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:14px 0 6px}
+.wgrid input{font-size:28px;font-weight:700;text-align:center;padding:12px 8px}
+input[type=range]{padding:0;border:0;background:transparent;margin:10px 0 4px;accent-color:var(--ac)}
+#wnote{min-height:22px}
+.add{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.add .nm{grid-column:1/-1}
+.add button{grid-column:1/-1}
+.wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;min-width:330px}
+th{font-size:12px;color:var(--mut);text-align:center;font-weight:600;padding:4px 4px}
+th.l{text-align:left}
+td{padding:6px 4px;border-top:1px solid var(--bd);text-align:center}
+td.rk{font-weight:700;width:30px}
+tr.top td.rk{color:var(--gold)}
+td.n{text-align:left;min-width:110px}
+td input{padding:6px;text-align:center;width:62px}
+td.n input{text-align:left;width:100%}
+td.sc{font-weight:700;font-size:17px}
+.up{color:var(--up);font-weight:700;white-space:nowrap}.dn{color:var(--dn);font-weight:700;white-space:nowrap}.fl{color:var(--mut)}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+#cv{width:100%;height:auto;display:block;border-radius:10px;border:1px solid var(--bd)}
+#fb{display:none;margin-top:10px}
+#fb img{width:100%;border-radius:10px}
+.prog div{font-size:11px;padding:8px 2px}
+.prog div.lock{opacity:.55}
+.big{font-size:20px;padding:14px 12px;font-weight:600}
+.ok{color:var(--up);font-weight:600}
+.err{color:var(--dn)}
+details summary{cursor:pointer;font-weight:600;padding:2px 0}
+details[open] summary{margin-bottom:10px}
+</style>
+</head>
+<body>
+<main>
+<h1>QB Rankings</h1>
+<div class="prog" id="prog">
+<div data-s="0">Name</div><div data-s="1">Weights</div><div data-s="2">Rate</div><div data-s="3">Submit</div><div data-s="4" id="pbd">Board</div>
+</div>
+
+<section id="s0" class="step">
+<div class="card">
+<h2>Who's rating?</h2>
+<div class="mut">Enter your name. Your ratings are saved under it, and it goes on your graphic.</div>
+<input id="me" class="big" style="margin-top:14px" placeholder="Your name" maxlength="30" autocomplete="given-name">
+<div class="mut err" id="menote" style="margin-top:8px"></div>
+</div>
+<div class="nav"><button id="n0">Next: set weights</button></div>
+</section>
+
+<section id="s1" class="step" hidden>
+<div class="card">
+<h2>How much should each rating count?</h2>
+<div class="mut">Choose how much your preseason ratings and your current ratings count toward the final ranking. They always add up to 100.</div>
+<div class="wgrid">
+<div><label for="wp">Preseason %</label><input id="wp" type="number" inputmode="numeric" min="0" max="100" step="1"></div>
+<div><label for="wc">Current %</label><input id="wc" type="number" inputmode="numeric" min="0" max="100" step="1"></div>
+</div>
+<input id="wsl" type="range" min="0" max="100" step="1" aria-label="Preseason weight">
+<div class="mut" id="wnote"></div>
+</div>
+<div class="nav"><button id="n1">Next: rate the QBs</button></div>
+</section>
+
+<section id="s2" class="step" hidden>
+<div class="card">
+<h2>Rate the QBs</h2>
+<div class="mut" id="rnote"></div>
+</div>
+
+<div class="card">
+<h3>Ranking</h3>
+<div class="wrap">
+<table>
+<thead><tr id="th"></tr></thead>
+<tbody id="tb"></tbody>
+</table>
+</div>
+<div id="empty" class="mut" style="padding:10px 0" hidden>No QBs yet. Add one below.</div>
+</div>
+
+<div class="card">
+<details>
+<summary>Paste a list of ratings</summary>
+<div id="pmw"><label for="pm">These ratings are for</label>
+<select id="pm"></select></div>
+<textarea id="pt" rows="6" placeholder="One QB per line, e.g.&#10;Patrick Mahomes 96&#10;Josh Allen, 94&#10;Joe Burrow - 91"></textarea>
+<button id="pb" style="width:100%">Import</button>
+<div class="mut" id="pr" style="margin-top:8px"></div>
+</details>
+</div>
+
+<div class="card">
+<details>
+<summary>Add a QB</summary>
+<div class="add" id="addbox"></div>
+</details>
+</div>
+
+<div class="nav"><button class="sec" id="b2">Back</button><button id="n2">Next: make the graphic</button></div>
+</section>
+
+<section id="s3" class="step" hidden>
+<div class="card">
+<h2>Your graphic</h2>
+<div style="margin:12px 0"><label for="tt">Title</label><input id="tt"></div>
+<canvas id="cv"></canvas>
+<button id="sv" style="margin-top:12px;width:100%">Save image</button>
+<div class="mut" style="margin-top:8px" id="gnote"></div>
+<div id="fb"><div class="mut" style="margin-bottom:6px">If it didn't download, press and hold the image to save it.</div><img id="fi" alt="QB rankings graphic"></div>
+</div>
+<div class="card">
+<h3>Consensus board</h3>
+<div class="mut" id="subtxt">Submit your ratings to add them to the group's consensus board. The board unlocks after you submit, and you can resubmit any time this week to update your ratings.</div>
+<button id="sub" style="margin-top:12px;width:100%">Submit my ratings</button>
+<div class="mut" id="subnote" style="margin-top:8px"></div>
+<button id="tobd" style="margin-top:8px;width:100%" hidden>See the consensus board</button>
+</div>
+<div class="nav"><button class="sec" id="b3">Back to ratings</button></div>
+</section>
+
+<section id="s4" class="step" hidden>
+<div class="card">
+<h2>Consensus board</h2>
+<div class="mut" id="bdnote">Loading…</div>
+<div id="bdhl" style="margin-top:12px"></div>
+<div id="bdfr" style="margin-top:12px"></div>
+<div class="wrap" style="margin-top:10px"><table style="min-width:300px"><thead><tr><th>#</th><th class="l">QB</th><th>Avg</th><th>Ratings</th></tr></thead><tbody id="bt"></tbody></table></div>
+<div class="mut" id="bdwt" style="font-size:12px;margin-top:10px"></div>
+</div>
+<div class="card">
+<h3>Consensus graphic</h3>
+<canvas id="cv2"></canvas>
+<button id="sv2" style="margin-top:12px;width:100%">Save image</button>
+<div id="fb2" style="display:none;margin-top:10px"><div class="mut" style="margin-bottom:6px">If it didn't download, press and hold the image to save it.</div><img id="fi2" alt="Consensus graphic"></div>
+</div>
+<div class="nav"><button class="sec" id="b4">Back</button><button id="rf">Refresh</button></div>
+</section>
+</main>
+<script>
+var FB={apiKey:"AIzaSyA4Yvip-0tUaF4swAbTvhouaoLq3m4APzM",projectId:"qb-rankings"};
+var KEY="qb-rankings-v1";
+var DEFAULT_QBS=["Josh Allen", "Drake Maye", "Geno Smith", "Malik Willis", "Lamar Jackson", "Joe Burrow", "Deshaun Watson", "Aaron Rodgers", "C.J. Stroud", "Daniel Jones", "Trevor Lawrence", "Cam Ward", "Bo Nix", "Patrick Mahomes", "Kirk Cousins", "Justin Herbert", "Dak Prescott", "Jaxson Dart", "Jalen Hurts", "Jayden Daniels", "Caleb Williams", "Jared Goff", "Jordan Love", "Kyler Murray", "Michael Penix Jr.", "Bryce Young", "Tyler Shough", "Baker Mayfield", "Jacoby Brissett", "Matthew Stafford", "Brock Purdy", "Sam Darnold"];
+var state={wp:65,step:1,qbs:DEFAULT_QBS.map(function(n){return{name:n,pre:null,cur:null};}),title:"QB Rankings",me:"",submittedWeek:-1};
+try{var s=localStorage.getItem(KEY);if(s){var p=JSON.parse(s);if(p&&typeof p.wp==="number"&&Array.isArray(p.qbs)){state=p;if(typeof state.title!=="string")state.title="QB Rankings";if(!(state.step>=0&&state.step<=4))state.step=0;if(typeof state.me!=="string")state.me="";if(typeof state.submittedWeek!=="number")state.submittedWeek=-1;}}}catch(e){}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(state));}catch(e){}}
+function clamp(v){v=parseFloat(v);if(isNaN(v))return null;return Math.max(0,Math.min(100,v));}
+function usePre(){return state.wp>0;}
+function useCur(){return state.wp<100;}
+function showMv(){return state.wp>0&&state.wp<100;}
+function score(q){
+  var wp=state.wp,wc=100-wp,hp=q.pre!==null&&q.pre!==undefined,hc=q.cur!==null&&q.cur!==undefined;
+  if(wp===0)return hc?q.cur:null;
+  if(wc===0)return hp?q.pre:null;
+  if(!hc)return hp?q.pre:null;
+  if(!hp)return q.cur;
+  return (q.pre*wp+q.cur*wc)/100;
+}
+function esc(t){return String(t).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];});}
+function getRows(){
+  var rows=state.qbs.map(function(q,i){return{q:q,i:i,s:score(q),mv:null};});
+  var pr=rows.filter(function(r){return r.q.pre!==null&&r.q.pre!==undefined;});
+  pr.sort(function(a,b){return (b.q.pre-a.q.pre)||(a.i-b.i);});
+  pr.forEach(function(r,k){r.pr=k+1;});
+  rows.sort(function(a,b){return ((b.s===null?-1:b.s)-(a.s===null?-1:a.s))||(a.i-b.i);});
+  rows.forEach(function(r,k){r.rk=k+1;if(showMv()&&r.pr&&r.s!==null)r.mv=r.pr-r.rk;});
+  return rows;
+}
+function fmtM(m){
+  if(m===null||m===0)return '<span class="fl">–</span>';
+  return m>0?'<span class="up">▲ '+m+'</span>':'<span class="dn">▼ '+(-m)+'</span>';
+}
+function go(n){
+  if(n>0&&!state.me.trim()){n=0;}
+  if(n===4&&!unlocked()){n=3;}
+  state.step=n;save();
+  [0,1,2,3,4].forEach(function(i){document.getElementById("s"+i).hidden=(i!==n);});
+  var pg=document.querySelectorAll("#prog div");
+  for(var k=0;k<pg.length;k++){var i=+pg[k].getAttribute("data-s");pg[k].className=(i===n?"on":(i<n?"done":""))+(i===4&&!unlocked()?" lock":"");}
+  document.getElementById("pbd").textContent=unlocked()?"Board":"🔒 Board";
+  render();
+  window.scrollTo(0,0);
+}
+function renderWeights(skip){
+  if(skip!=="wp")document.getElementById("wp").value=state.wp;
+  if(skip!=="wc")document.getElementById("wc").value=100-state.wp;
+  document.getElementById("wsl").value=state.wp;
+  var n=document.getElementById("wnote");
+  if(state.wp===0)n.textContent="Preseason is at 0%, so you won't need to enter any preseason ratings.";
+  else if(state.wp===100)n.textContent="Current is at 0%, so you won't need to enter any current ratings.";
+  else n.textContent="You'll enter both a preseason and a current rating for each QB.";
+}
+function renderRatings(){
+  var rows=getRows(),h="";
+  var which=!usePre()?"current":!useCur()?"preseason":"both";
+  document.getElementById("rnote").textContent=
+    which==="current"?"Give each QB a current rating from 0 to 100. The ranking updates as you go.":
+    which==="preseason"?"Give each QB a preseason rating from 0 to 100. The ranking updates as you go.":
+    "Give each QB a preseason and a current rating from 0 to 100. If one is blank, the other is used by itself.";
+  var th='<th>#</th><th class="l">QB</th>';
+  if(usePre())th+='<th>Pre</th>';
+  if(useCur())th+='<th>Cur</th>';
+  if(showMv())th+='<th>Move</th>';
+  th+='<th>Score</th><th></th>';
+  document.getElementById("th").innerHTML=th;
+  rows.forEach(function(r,k){
+    var q=r.q;
+    h+='<tr class="'+(k<3?"top":"")+'"><td class="rk">'+r.rk+'</td>'+
+    '<td class="n"><input data-i="'+r.i+'" data-f="name" value="'+esc(q.name)+'"></td>';
+    if(usePre())h+='<td><input type="number" inputmode="decimal" min="0" max="100" data-i="'+r.i+'" data-f="pre" value="'+(q.pre===null||q.pre===undefined?"":q.pre)+'"></td>';
+    if(useCur())h+='<td><input type="number" inputmode="decimal" min="0" max="100" data-i="'+r.i+'" data-f="cur" value="'+(q.cur===null||q.cur===undefined?"":q.cur)+'"></td>';
+    if(showMv())h+='<td>'+fmtM(r.mv)+'</td>';
+    h+='<td class="sc">'+(r.s===null?"–":r.s.toFixed(1))+'</td>'+
+    '<td><button class="g" data-del="'+r.i+'" aria-label="Remove">✕</button></td></tr>';
+  });
+  document.getElementById("tb").innerHTML=h;
+  document.getElementById("empty").hidden=state.qbs.length>0;
+  var pm=document.getElementById("pm"),pw=document.getElementById("pmw");
+  if(which==="both"){
+    pw.style.display="";
+    if(pm.options.length!==3){pm.innerHTML='<option value="pre">Preseason ratings</option><option value="cur">Current ratings</option><option value="both">Both (name, preseason, current)</option>';}
+  }else{pw.style.display="none";}
+  var ab=document.getElementById("addbox");
+  var ah='<input class="nm" id="nn" placeholder="QB name">';
+  if(usePre())ah+='<input id="np" type="number" inputmode="decimal" min="0" max="100" placeholder="Preseason">';
+  if(useCur())ah+='<input id="nc" type="number" inputmode="decimal" min="0" max="100" placeholder="Current">';
+  ah+='<button id="ab">Add</button>';
+  if(!ab.getAttribute("data-k")||ab.getAttribute("data-k")!==which){ab.innerHTML=ah;ab.setAttribute("data-k",which);}
+}
+function render(){
+  renderWeights();
+  if(state.step===0){document.getElementById("me").value=state.me;}
+  if(state.step===2)renderRatings();
+  if(state.step===3){
+    document.getElementById("tt").value=state.title;
+    renderSubmit();
+    document.getElementById("gnote").textContent=showMv()?"Shows the top 32. ▲/▼ is how many spots a QB moved from the preseason ranking to the current blended ranking.":"Shows the top 32 by score.";
+    drawPoster(getRows(),"cv",state.title,posterSub(),showMv());
+  }
+  if(state.step===4)loadBoard();
+}
+function weekNum(){
+  var d=Math.floor((new Date()-new Date(2026,8,8))/86400000);
+  if(d<0)return 0;
+  var w=Math.floor(d/7)+1;
+  return w>18?19:w;
+}
+function fbOn(){return !!(FB.apiKey&&FB.projectId&&FB.apiKey.indexOf("__")!==0);}
+function unlocked(){return fbOn()&&state.submittedWeek===weekNum();}
+function weekLabel(){
+  var d=Math.floor((new Date()-new Date(2026,8,8))/86400000);
+  if(d<0)return "Preseason";
+  var w=Math.floor(d/7)+1;
+  return w>18?"Playoffs":"Week "+w+" Update";
+}
+function posterSub(){return (state.me.trim()?state.me.trim()+" · ":"")+weekLabel();}
+function fit(ctx,t,maxW){
+  if(ctx.measureText(t).width<=maxW)return t;
+  while(t.length>1&&ctx.measureText(t+"…").width>maxW)t=t.slice(0,-1);
+  return t+"…";
+}
+function rr(ctx,x,y,w,h,r){ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();}
+function drawPoster(rows,cvId,title,sub,mvOn,extra){
+  var cv=document.getElementById(cvId),ctx=cv.getContext("2d");
+  var list=rows.slice(0,32),n=list.length;
+  var cols=n>16?2:1,per=Math.max(1,Math.ceil(n/cols));
+  var W=1080,rowH=62,headH=200,footH=(extra&&extra.w)?104:80,pad=50;
+  var H=headH+per*rowH+footH;
+  var S=2;cv.width=W*S;cv.height=H*S;
+  ctx.setTransform(S,0,0,S,0,0);
+  var g=ctx.createLinearGradient(0,0,0,H);g.addColorStop(0,"#0b1220");g.addColorStop(1,"#18284a");
+  ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
+  ctx.fillStyle="#fbbf24";ctx.fillRect(pad,52,70,6);
+  ctx.textBaseline="alphabetic";ctx.textAlign="left";
+  var F='-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif';
+  ctx.fillStyle="#ffffff";ctx.font="800 64px "+F;
+  ctx.fillText(fit(ctx,title||"",W-2*pad),pad,128);
+  ctx.fillStyle="#93a4c4";ctx.font="600 28px "+F;
+  ctx.fillText(fit(ctx,sub||"",W-2*pad),pad,172);
+  var gap=30,colW=cols===2?(W-2*pad-gap)/2:W-2*pad;
+  list.forEach(function(r,k){
+    var c=Math.floor(k/per),j=k%per;
+    var x=pad+c*(colW+gap),y=headH+j*rowH;
+    ctx.fillStyle=j%2?"rgba(255,255,255,0.03)":"rgba(255,255,255,0.07)";
+    rr(ctx,x,y+4,colW,rowH-8,12);ctx.fill();
+    var top=r.rk<=3;
+    ctx.fillStyle=top?"#fbbf24":"rgba(255,255,255,0.12)";
+    rr(ctx,x+10,y+11,40,rowH-22,9);ctx.fill();
+    ctx.fillStyle=top?"#0b1220":"#ffffff";ctx.font="800 24px "+F;ctx.textAlign="center";
+    ctx.fillText(String(r.rk),x+30,y+rowH/2+9);
+    ctx.textAlign="left";
+    var right=x+colW-16,mvW=mvOn?84:0,sw=70;
+    ctx.fillStyle="#ffffff";ctx.font="700 26px "+F;
+    ctx.fillText(fit(ctx,r.q.name,colW-60-16-mvW-sw-10),x+64,y+rowH/2+9);
+    ctx.fillStyle="#93a4c4";ctx.font="600 22px "+F;ctx.textAlign="right";
+    ctx.fillText(r.s===null?"–":r.s.toFixed(1),right-mvW,y+rowH/2+8);
+    ctx.textAlign="left";
+    if(mvOn){
+      var m=r.mv,cy=y+rowH/2;
+      if(m===null||m===0){
+        ctx.fillStyle="#6b7a99";ctx.font="700 24px "+F;ctx.textAlign="right";
+        ctx.fillText("–",right,cy+9);ctx.textAlign="left";
+      }else{
+        var up=m>0,col=up?"#4ade80":"#f87171",txt=String(Math.abs(m));
+        ctx.font="800 26px "+F;ctx.textAlign="right";ctx.fillStyle=col;
+        ctx.fillText(txt,right,cy+9);
+        var tw=ctx.measureText(txt).width,tx=right-tw-18;
+        ctx.beginPath();
+        if(up){ctx.moveTo(tx,cy-9);ctx.lineTo(tx+9,cy+7);ctx.lineTo(tx-9,cy+7);}
+        else{ctx.moveTo(tx,cy+9);ctx.lineTo(tx+9,cy-7);ctx.lineTo(tx-9,cy-7);}
+        ctx.closePath();ctx.fill();ctx.textAlign="left";
+      }
+    }
+  });
+  if(!n){ctx.fillStyle="#93a4c4";ctx.font="600 26px "+F;ctx.fillText("Add some QBs to see your ranking.",pad,headH+50);}
+  if(extra){
+    var hw=(W-2*pad)/2-10,yb=extra.w?H-52:H-30;
+    if(extra.hi){
+      ctx.font="700 22px "+F;ctx.textAlign="left";ctx.fillStyle="#4ade80";
+      ctx.fillText(fit(ctx,"▲ Highest: "+extra.hi,hw),pad,yb);
+      ctx.textAlign="right";ctx.fillStyle="#f87171";
+      ctx.fillText(fit(ctx,"▼ Lowest: "+extra.lo,hw),W-pad,yb);
+      ctx.textAlign="left";
+    }
+    if(extra.w){
+      ctx.font="600 17px "+F;ctx.fillStyle="#6b7a99";ctx.textAlign="left";
+      ctx.fillText(fit(ctx,extra.w,W-2*pad),pad,H-18);
+    }
+  }
+  if(mvOn){ctx.fillStyle="#6b7a99";ctx.font="600 20px "+F;ctx.textAlign="left";
+    ctx.fillText("▲▼ = spots moved vs. preseason ranking",pad,H-30);}
+}
+function saveImg(cvId,imgId,fbId,fname){
+  var cv=document.getElementById(cvId);
+  document.getElementById(imgId).src=cv.toDataURL("image/png");
+  var fb=document.getElementById(fbId);fb.style.display="block";
+  try{
+    cv.toBlob(function(b){
+      if(!b)return;
+      var u=URL.createObjectURL(b),a=document.createElement("a");
+      a.href=u;a.download=fname;document.body.appendChild(a);a.click();
+      setTimeout(function(){document.body.removeChild(a);URL.revokeObjectURL(u);},1000);
+    },"image/png");
+  }catch(e){}
+  fb.scrollIntoView({behavior:"smooth",block:"nearest"});
+}
+document.getElementById("sv").addEventListener("click",function(){saveImg("cv","fi","fb","qb-rankings.png");});
+document.getElementById("sv2").addEventListener("click",function(){saveImg("cv2","fi2","fb2","qb-consensus.png");});
+document.getElementById("tt").addEventListener("input",function(e){state.title=e.target.value;save();drawPoster(getRows(),"cv",state.title,posterSub(),showMv());});
+function setWp(v,skip){state.wp=Math.max(0,Math.min(100,Math.round(v)));save();renderWeights(skip);}
+document.getElementById("wp").addEventListener("input",function(e){var v=clamp(e.target.value);if(v!==null)setWp(v,"wp");});
+document.getElementById("wc").addEventListener("input",function(e){var v=clamp(e.target.value);if(v!==null)setWp(100-v,"wc");});
+document.getElementById("wp").addEventListener("change",function(){renderWeights();});
+document.getElementById("wc").addEventListener("change",function(){renderWeights();});
+document.getElementById("wsl").addEventListener("input",function(e){setWp(+e.target.value);});
+document.getElementById("n0").addEventListener("click",function(){
+  var v=document.getElementById("me").value.trim();
+  if(!v){document.getElementById("menote").textContent="Enter your name to continue.";return;}
+  state.me=v;save();go(1);
+});
+document.getElementById("me").addEventListener("input",function(e){state.me=e.target.value;save();document.getElementById("menote").textContent="";});
+document.getElementById("n1").addEventListener("click",function(){go(2);});
+document.getElementById("b2").addEventListener("click",function(){go(1);});
+document.getElementById("n2").addEventListener("click",function(){go(3);});
+document.getElementById("b3").addEventListener("click",function(){go(2);});
+document.getElementById("b4").addEventListener("click",function(){go(3);});
+document.getElementById("rf").addEventListener("click",function(){loadBoard();});
+document.getElementById("tobd").addEventListener("click",function(){go(4);});
+document.getElementById("sub").addEventListener("click",submitRatings);
+document.getElementById("prog").addEventListener("click",function(e){var s=e.target.getAttribute("data-s");if(s)go(+s);});
+document.getElementById("addbox").addEventListener("click",function(e){
+  if(e.target.id!=="ab")return;
+  var n=document.getElementById("nn").value.trim();
+  if(!n)return;
+  var np=document.getElementById("np"),nc=document.getElementById("nc");
+  state.qbs.push({name:n,pre:np?clamp(np.value):null,cur:nc?clamp(nc.value):null});
+  save();document.getElementById("addbox").removeAttribute("data-k");renderRatings();
+  document.getElementById("nn").focus();
+});
+document.getElementById("tb").addEventListener("change",function(e){
+  var t=e.target,i=t.getAttribute("data-i");
+  if(i===null)return;
+  var q=state.qbs[+i],f=t.getAttribute("data-f");
+  if(f==="name"){q.name=t.value.trim()||q.name;}else{q[f]=clamp(t.value);}
+  save();renderRatings();
+});
+document.getElementById("tb").addEventListener("click",function(e){
+  var d=e.target.getAttribute("data-del");
+  if(d===null)return;
+  state.qbs.splice(+d,1);save();renderRatings();
+});
+document.getElementById("pb").addEventListener("click",function(){
+  var mode=!usePre()?"cur":!useCur()?"pre":document.getElementById("pm").value||"pre";
+  var lines=document.getElementById("pt").value.split(/\r?\n/);
+  var re=/^\s*(?:\d+[.)]\s+)?(.+?)[\s,:\t\-–]+(\d+(?:\.\d+)?)(?:[\s,\t]+(\d+(?:\.\d+)?))?\s*$/;
+  var added=0,updated=0,skipped=[];
+  lines.forEach(function(line){
+    if(!line.trim())return;
+    var m=line.match(re);
+    if(!m){skipped.push(line.trim());return;}
+    var name=m[1].trim(),a=clamp(m[2]),b=m[3]!==undefined?clamp(m[3]):null;
+    var pre=null,cur=null;
+    if(mode==="pre")pre=a;else if(mode==="cur")cur=a;else{pre=a;cur=b;}
+    var found=null;
+    state.qbs.forEach(function(q){if(q.name.toLowerCase()===name.toLowerCase())found=q;});
+    if(found){
+      if(pre!==null)found.pre=pre;
+      if(cur!==null)found.cur=cur;
+      updated++;
+    }else{
+      state.qbs.push({name:name,pre:pre,cur:cur});added++;
+    }
+  });
+  var msg="Added "+added+", updated "+updated+".";
+  if(skipped.length)msg+=" Couldn't read: "+skipped.join("; ")+".";
+  if(added||updated)document.getElementById("pt").value="";
+  save();renderRatings();
+  document.getElementById("pr").textContent=msg;
+});
+
+function fsBase(){return "https://firestore.googleapis.com/v1/projects/"+encodeURIComponent(FB.projectId)+"/databases/(default)/documents";}
+function docId(n){return n.toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"")||"anon";}
+function renderSubmit(){
+  var btn=document.getElementById("sub"),note=document.getElementById("subnote"),to=document.getElementById("tobd");
+  var done=unlocked();
+  to.hidden=!done;
+  if(!fbOn()){btn.disabled=true;note.className="mut";note.textContent="The consensus board isn't set up yet.";return;}
+  btn.disabled=false;
+  btn.textContent=done?"Update my ratings":"Submit my ratings";
+  if(done&&!note.textContent)note.innerHTML='<span class="ok">Submitted for this week.</span> You can update them any time.';
+}
+function submitRatings(){
+  var rows=getRows().filter(function(r){return r.s!==null;});
+  var note=document.getElementById("subnote"),btn=document.getElementById("sub");
+  if(!rows.length){note.className="mut err";note.textContent="Rate at least one QB first.";return;}
+  var vals=rows.map(function(r){return{mapValue:{fields:{n:{stringValue:r.q.name},s:{doubleValue:Math.round(r.s*10)/10}}}};});
+  var body={fields:{name:{stringValue:state.me.trim()},wp:{integerValue:String(state.wp)},at:{stringValue:new Date().toISOString()},scores:{arrayValue:{values:vals}}}};
+  var wk=weekNum();
+  btn.disabled=true;note.className="mut";note.textContent="Submitting…";
+  fetch(fsBase()+"/ratings_w"+wk+"/"+docId(state.me)+"?key="+encodeURIComponent(FB.apiKey),{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)})
+  .then(function(r){if(!r.ok)throw new Error("http "+r.status);return r.json();})
+  .then(function(){
+    state.submittedWeek=wk;save();
+    note.innerHTML='<span class="ok">Submitted! '+rows.length+' QBs rated.</span>';
+    btn.disabled=false;
+    go(3);
+  })
+  .catch(function(){btn.disabled=false;note.className="mut err";note.textContent="Couldn't submit. Check your connection and try again.";});
+}
+function loadBoard(){
+  var note=document.getElementById("bdnote"),wk=weekNum();
+  note.className="mut";note.textContent="Loading…";
+  fetch(fsBase()+"/ratings_w"+wk+"?pageSize=300&key="+encodeURIComponent(FB.apiKey))
+  .then(function(r){if(!r.ok)throw new Error("http "+r.status);return r.json();})
+  .then(function(j){
+    var docs=j.documents||[],agg={},names=[],ents=[];
+    docs.forEach(function(d){
+      var f=d.fields||{};
+      var nm=f.name&&f.name.stringValue?f.name.stringValue:"?",wv=f.wp?parseInt(f.wp.integerValue!==undefined?f.wp.integerValue:f.wp.doubleValue,10):NaN;
+      names.push(nm);ents.push({name:nm,wp:isNaN(wv)?null:wv});
+      var vs=(f.scores&&f.scores.arrayValue&&f.scores.arrayValue.values)||[];
+      vs.forEach(function(v){
+        var m=(v.mapValue&&v.mapValue.fields)||{};
+        if(!m.n||!m.s)return;
+        var sv=m.s.doubleValue!==undefined?m.s.doubleValue:parseFloat(m.s.integerValue);
+        if(isNaN(sv))return;
+        var k=m.n.stringValue;
+        if(!agg[k])agg[k]={sum:0,c:0};
+        agg[k].sum+=sv;agg[k].c++;
+      });
+    });
+    var rows=Object.keys(agg).map(function(k){return{q:{name:k},s:agg[k].sum/agg[k].c,c:agg[k].c,mv:null};});
+    rows.sort(function(a,b){return (b.s-a.s)||(b.c-a.c)||a.q.name.localeCompare(b.q.name);});
+    rows.forEach(function(r,i){r.rk=i+1;});
+    var h="";
+    rows.forEach(function(r,i){h+='<tr class="'+(i<3?"top":"")+'"><td class="rk">'+r.rk+'</td><td class="n" style="text-align:left">'+esc(r.q.name)+'</td><td class="sc">'+r.s.toFixed(1)+'</td><td class="fl">'+r.c+'</td></tr>';});
+    document.getElementById("bt").innerHTML=h||'<tr><td colspan="4" class="mut">No ratings yet.</td></tr>';
+    note.textContent=docs.length+" "+(docs.length===1?"person has":"people have")+" submitted this week.";
+    var fr="",grp={},order=[];
+    ents.sort(function(a,b){return a.name.localeCompare(b.name);});
+    ents.forEach(function(e){
+      var w=e.wp===null?"?":e.wp+"/"+(100-e.wp);
+      fr+='<div style="display:flex;justify-content:space-between;gap:10px;padding:6px 0;border-top:1px solid var(--bd)"><span>'+esc(e.name)+'</span><span class="mut">'+(e.wp===null?"–":e.wp+"% pre · "+(100-e.wp)+"% cur")+'</span></div>';
+      if(e.wp!==null){if(!grp[w]){grp[w]=0;order.push(w);}grp[w]++;}
+    });
+    document.getElementById("bdfr").innerHTML=fr?'<h3 style="font-size:13px;text-transform:uppercase;letter-spacing:.05em;color:var(--mut);margin:0 0 4px">Friends and their weights</h3>'+fr:"";
+    var wtxt=order.length?"Weights used (preseason/current): "+order.map(function(w){return w+" × "+grp[w];}).join(" · "):"";
+    document.getElementById("bdwt").textContent=wtxt;
+    var hl=document.getElementById("bdhl"),ex={w:wtxt};
+    if(rows.length>1){
+      var top=rows[0],bot=rows[rows.length-1];
+      ex.hi=top.q.name+" "+top.s.toFixed(1);ex.lo=bot.q.name+" "+bot.s.toFixed(1);
+      hl.innerHTML='<div class="up">▲ Highest: '+esc(top.q.name)+' ('+top.s.toFixed(1)+')</div><div class="dn" style="margin-top:4px">▼ Lowest: '+esc(bot.q.name)+' ('+bot.s.toFixed(1)+')</div>';
+    }else hl.innerHTML="";
+    drawPoster(rows,"cv2","Consensus QB Rankings",weekLabel()+" · "+docs.length+(docs.length===1?" rating":" ratings"),false,ex);
+  })
+  .catch(function(){note.className="mut err";note.textContent="Couldn't load the board. Check your connection and tap Refresh.";});
+}
+go(state.step);
+</script>
+</body>
+</html>
