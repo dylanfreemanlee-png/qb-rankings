@@ -518,11 +518,7 @@ function loadBoard(){
     var wtxt=order.length?"Weights used (preseason/current): "+order.map(function(w){return w+" × "+grp[w];}).join(" · "):"";
     document.getElementById("bdwt").textContent=wtxt;
     var hl=document.getElementById("bdhl"),ex={w:wtxt};
-    if(rows.length>1){
-      var top=rows[0],bot=rows[rows.length-1];
-      ex.hi=top.q.name+" "+top.s.toFixed(1);ex.lo=bot.q.name+" "+bot.s.toFixed(1);
-      hl.innerHTML='<div class="up">▲ Highest: '+esc(top.q.name)+' ('+top.s.toFixed(1)+')</div><div class="dn" style="margin-top:4px">▼ Lowest: '+esc(bot.q.name)+' ('+bot.s.toFixed(1)+')</div>';
-    }else hl.innerHTML="";
+    hl.innerHTML="";
     drawPoster(rows,"cv2","Consensus QB Rankings",weekLabel()+" · "+docs.length+(docs.length===1?" rating":" ratings"),false,ex);
   })
   .catch(function(){note.className="mut err";note.textContent="Couldn't load the board. Check your connection and tap Refresh.";});
