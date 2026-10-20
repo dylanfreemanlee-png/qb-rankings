@@ -136,9 +136,9 @@ details[open] summary{margin-bottom:10px}
 <h2>Your graphic</h2>
 <div style="margin:12px 0"><label for="tt">Title</label><input id="tt"></div>
 <canvas id="cv"></canvas>
-<button id="sv" style="margin-top:12px;width:100%">Save image</button>
+<button id="sv" style="margin-top:12px;width:100%">Save image to photos</button>
 <div class="mut" style="margin-top:8px" id="gnote"></div>
-<div id="fb"><div class="mut" style="margin-bottom:6px">If it didn't download, press and hold the image to save it.</div><img id="fi" alt="QB rankings graphic"></div>
+<div id="fb"><div class="mut" style="margin-bottom:6px">Press and hold the image, then tap Save to Photos (or Add to Photos).</div><img id="fi" alt="QB rankings graphic"></div>
 </div>
 <div class="card">
 <h3>Consensus board</h3>
@@ -162,8 +162,8 @@ details[open] summary{margin-bottom:10px}
 <div class="card">
 <h3>Consensus graphic</h3>
 <canvas id="cv2"></canvas>
-<button id="sv2" style="margin-top:12px;width:100%">Save image</button>
-<div id="fb2" style="display:none;margin-top:10px"><div class="mut" style="margin-bottom:6px">If it didn't download, press and hold the image to save it.</div><img id="fi2" alt="Consensus graphic"></div>
+<button id="sv2" style="margin-top:12px;width:100%">Save image to photos</button>
+<div id="fb2" style="display:none;margin-top:10px"><div class="mut" style="margin-bottom:6px">Press and hold the image, then tap Save to Photos (or Add to Photos).</div><img id="fi2" alt="Consensus graphic"></div>
 </div>
 <div class="nav"><button class="sec" id="b4">Back</button><button id="rf">Refresh</button></div>
 </section>
@@ -362,18 +362,29 @@ function drawPoster(rows,cvId,title,sub,mvOn,extra){
     ctx.fillText("▲▼ = spots moved vs. preseason ranking",pad,H-30);}
 }
 function saveImg(cvId,imgId,fbId,fname){
-  var cv=document.getElementById(cvId);
-  document.getElementById(imgId).src=cv.toDataURL("image/png");
-  var fb=document.getElementById(fbId);fb.style.display="block";
+  var cv=document.getElementById(cvId),fb=document.getElementById(fbId);
+  function showFallback(){
+    document.getElementById(imgId).src=cv.toDataURL("image/png");
+    fb.style.display="block";
+    fb.scrollIntoView({behavior:"smooth",block:"nearest"});
+  }
+  var touch=/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)||(navigator.maxTouchPoints>1&&/Mac/.test(navigator.platform));
   try{
     cv.toBlob(function(b){
-      if(!b)return;
+      if(!b){showFallback();return;}
+      var file=null;
+      try{file=new File([b],fname,{type:"image/png"});}catch(e){}
+      if(file&&navigator.canShare&&navigator.canShare({files:[file]})){
+        navigator.share({files:[file]}).catch(function(err){if(!err||err.name!=="AbortError")showFallback();});
+        return;
+      }
+      if(touch){showFallback();return;}
       var u=URL.createObjectURL(b),a=document.createElement("a");
       a.href=u;a.download=fname;document.body.appendChild(a);a.click();
       setTimeout(function(){document.body.removeChild(a);URL.revokeObjectURL(u);},1000);
+      showFallback();
     },"image/png");
-  }catch(e){}
-  fb.scrollIntoView({behavior:"smooth",block:"nearest"});
+  }catch(e){showFallback();}
 }
 document.getElementById("sv").addEventListener("click",function(){saveImg("cv","fi","fb","qb-rankings.png");});
 document.getElementById("sv2").addEventListener("click",function(){saveImg("cv2","fi2","fb2","qb-consensus.png");});
